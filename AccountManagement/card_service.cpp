@@ -1,10 +1,35 @@
 #include <iostream>
 #include <vector>
-#include <ctime>
 #include <string>
+#include <ctime>
 #include "header.h"
 #include "card_info.h"
 #include "card_storage.h"
+
+// 封装重复查找卡号和验证密码流程
+CardInfo* getAndVerifyCard(std::vector<CardInfo>& cards, const std::string& actionName)
+{
+	std::string name;
+	std::cout << "请输入要" << actionName << "的卡号：";
+	std::cin >> name;
+
+	CardInfo *p = findCardByName(cards, name);
+	if (!p || p->nDel == 1)
+	{
+		std::cout << "未找到有效的卡号或卡已删除：" << name << std::endl;
+		return nullptr;
+	}
+
+	std::string pwd;
+	std::cout << "请输入密码以确认" << actionName << "：";
+	std::cin >> pwd;
+	if (!p->checkPwd(pwd))
+	{
+		std::cout << "密码错误，" << actionName << "取消。" << std::endl;
+		return nullptr;
+	}
+	return p;
+}
 
 static std::string formatTimeInt64(int64_t t)
 {
@@ -69,22 +94,8 @@ void queryCard()
 	std::vector<CardInfo> cards;
 	loadCards(cards);
 
-	std::string name;
-	std::cout << "请输入要查询的卡号：";
-	std::cin >> name;
-	CardInfo *p = findCardByName(cards, name);
-	if (!p) {
-		std::cout << "未找到卡号：" << name << std::endl;
-		return;
-	}
-
-	std::string pwd;
-	std::cout << "请输入密码以查看卡信息：";
-	std::cin >> pwd;
-	if (!p->checkPwd(pwd)) {
-		std::cout << "密码错误，无法查看卡信息。" << std::endl;
-		return;
-	}
+	CardInfo* p = getAndVerifyCard(cards, "查询");
+	if (!p) return;
 
 	std::cout << "卡号: " << p->aName << std::endl;
 	std::cout << "状态: " << p->nStatus << " (0-未用,1-使用,2-注销,3-失效)" << std::endl;
@@ -102,26 +113,12 @@ void logoutCard()
 	std::vector<CardInfo> cards;
 	loadCards(cards);
 
-	std::string name;
-	std::cout << "请输入要注销的卡号：";
-	std::cin >> name;
-	CardInfo *p = findCardByName(cards, name);
-	if (!p) {
-		std::cout << "未找到卡号：" << name << std::endl;
-		return;
-	}
+	CardInfo* p = getAndVerifyCard(cards, "注销");
+	if (!p) return;
 
-	std::string pwd;
-	std::cout << "请输入密码以确认注销：";
-	std::cin >> pwd;
-	if (!p->checkPwd(pwd)) {
-		std::cout << "密码错误，无法注销卡。" << std::endl;
-		return;
-	}
-
-	if (markCardDeleted(cards, name)) {
+	if (markCardDeleted(cards, p->aName)) {
 		std::cout << "卡已注销。" << std::endl;
 	} else {
-		std::cout << "注销失败：未找到卡或写入失败。" << std::endl;
+		std::cout << "注销失败：文件写入失败。" << std::endl;
 	}
 }

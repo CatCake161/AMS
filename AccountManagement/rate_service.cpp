@@ -6,30 +6,16 @@
 #include "card_info.h"
 #include "card_storage.h"
 
+// 借用已封装好的验证函数（建议后续可以把他移到 card_storage 中统一），这里暂在同文件内声明。
+extern CardInfo* getAndVerifyCard(std::vector<CardInfo>& cards, const std::string& actionName);
+
 void recharge()
 {
 	std::vector<CardInfo> cards;
 	loadCards(cards);
 
-	std::string name;
-	std::cout << "请输入要充值的卡号：";
-	std::cin >> name;
-
-	CardInfo *p = findCardByName(cards, name);
-	if (!p || p->nDel == 1)
-	{
-		std::cout << "未找到有效的卡号或卡已删除：" << name << std::endl;
-		return;
-	}
-
-	std::string pwd;
-	std::cout << "请输入密码以确认充值：";
-	std::cin >> pwd;
-	if (!p->checkPwd(pwd))
-	{
-		std::cout << "密码错误，充值取消。" << std::endl;
-		return;
-	}
+	CardInfo* p = getAndVerifyCard(cards, "充值");
+	if (!p) return;
 
 	double amount = 0.0;
 	std::cout << "请输入充值金额（正数）：";
@@ -60,25 +46,8 @@ void refund()
 	std::vector<CardInfo> cards;
 	loadCards(cards);
 
-	std::string name;
-	std::cout << "请输入要退费的卡号：";
-	std::cin >> name;
-
-	CardInfo *p = findCardByName(cards, name);
-	if (!p || p->nDel == 1)
-	{
-		std::cout << "未找到有效的卡号或卡已删除：" << name << std::endl;
-		return;
-	}
-
-	std::string pwd;
-	std::cout << "请输入密码以确认退费：";
-	std::cin >> pwd;
-	if (!p->checkPwd(pwd))
-	{
-		std::cout << "密码错误，退费取消。" << std::endl;
-		return;
-	}
+	CardInfo* p = getAndVerifyCard(cards, "退费");
+	if (!p) return;
 
 	double amount = 0.0;
 	std::cout << "请输入退费金额（正数，不能超过当前余额）：";

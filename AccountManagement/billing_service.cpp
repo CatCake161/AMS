@@ -8,32 +8,16 @@
 #include "card_info.h"
 #include "card_storage.h"
 
+extern CardInfo* getAndVerifyCard(std::vector<CardInfo>& cards, const std::string& actionName);
+
 // 上机：要求卡号 + 密码，校验通过且卡未被注销且未在用，设置为正在使用并记录登录开始时间（存于 tLast）
 void login()
 {
 	std::vector<CardInfo> cards;
 	loadCards(cards);
 
-	std::string name;
-	std::cout << "请输入卡号：";
-	std::cin >> name;
-
-	CardInfo *p = findCardByName(cards, name);
-	if (!p || p->nDel == 1)
-	{
-		std::cout << "未找到有效卡或卡已删除。" << std::endl;
-		return;
-	}
-
-	std::string pwd;
-	std::cout << "请输入密码：";
-	std::cin >> pwd;
-
-	if (!p->checkPwd(pwd))
-	{
-		std::cout << "密码错误，无法上机。" << std::endl;
-		return;
-	}
+	CardInfo* p = getAndVerifyCard(cards, "上机");
+	if (!p) return;
 
 	if (p->nStatus == 1)
 	{
@@ -64,26 +48,8 @@ void logout()
 	std::vector<CardInfo> cards;
 	loadCards(cards);
 
-	std::string name;
-	std::cout << "请输入卡号：";
-	std::cin >> name;
-
-	CardInfo *p = findCardByName(cards, name);
-	if (!p || p->nDel == 1)
-	{
-		std::cout << "未找到有效卡或卡已删除。" << std::endl;
-		return;
-	}
-
-	std::string pwd;
-	std::cout << "请输入密码：";
-	std::cin >> pwd;
-
-	if (!p->checkPwd(pwd))
-	{
-		std::cout << "密码错误，无法下机。" << std::endl;
-		return;
-	}
+	CardInfo* p = getAndVerifyCard(cards, "下机");
+	if (!p) return;
 
 	if (p->nStatus != 1)
 	{
